@@ -19,6 +19,7 @@ import { BarcodeScannerModal } from './components/BarcodeScannerModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { NotificationsModal } from './components/NotificationsModal';
 import { ProfileView } from './components/ProfileView';
+import { AllScreensGallery } from './components/AllScreensGallery';
 
 import {
   initialPantryItems,
@@ -44,6 +45,9 @@ import {
 import { calculateCO2FromFood, getDaysRemaining } from './utils/helpers';
 
 export default function App() {
+  // View mode: 'app' (interactive mobile phone) or 'gallery' (all screens showcase)
+  const [displayMode, setDisplayMode] = useState<'app' | 'gallery'>('app');
+
   // Navigation State
   const [activeTab, setActiveTab] = useState<NavigationTab>('beranda');
 
@@ -315,160 +319,201 @@ export default function App() {
   };
 
   return (
-    <MobileFrame>
-      {/* 1. Top Bar */}
-      <TopBar
-        title={getPageTitle(activeTab)}
-        userName={profile.name}
-        isHome={activeTab === 'beranda'}
-        onBack={activeTab !== 'beranda' ? () => setActiveTab('beranda') : undefined}
-        onOpenNotifications={() => setShowNotifications(true)}
-        onOpenProfile={() => setActiveTab('profile')}
-        unreadNotifsCount={unreadNotifs}
-      />
+    <div className="relative min-h-screen">
+      {/* Top Floating View Switcher */}
+      <div className="fixed top-2.5 right-3 sm:right-6 z-50 flex items-center bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-full p-1 shadow-lg">
+        <button
+          onClick={() => setDisplayMode('app')}
+          className={`px-3 py-1 text-[11px] font-bold rounded-full transition-all flex items-center gap-1 ${
+            displayMode === 'app'
+              ? 'bg-[#236B46] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <span>📱</span> Mode HP
+        </button>
+        <button
+          onClick={() => setDisplayMode('gallery')}
+          className={`px-3 py-1 text-[11px] font-bold rounded-full transition-all flex items-center gap-1 ${
+            displayMode === 'gallery'
+              ? 'bg-[#236B46] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <span>🖼️</span> Semua Layar (12 Layar)
+        </button>
+      </div>
 
-      {/* 2. Main Tab View Router */}
-      <main className="flex-1 flex flex-col">
-        {activeTab === 'beranda' && (
-          <BerandaView
-            pantryItems={pantryItems}
-            recipes={recipes}
-            onNavigate={(tab) => setActiveTab(tab)}
-            onSelectRecipe={(recipe) => {
-              setSelectedRecipeDetail(recipe);
-              setActiveTab('menu');
-            }}
+      {displayMode === 'gallery' ? (
+        <AllScreensGallery
+          pantryItems={pantryItems}
+          recipes={recipes}
+          mealPlan={mealPlan}
+          rescueListings={rescueListings}
+          organicLogs={organicLogs}
+          profile={profile}
+          onSelectScreenForApp={(tab) => {
+            setActiveTab(tab);
+            setDisplayMode('app');
+          }}
+        />
+      ) : (
+        <MobileFrame>
+          {/* 1. Top Bar */}
+          <TopBar
+            title={getPageTitle(activeTab)}
+            userName={profile.name}
+            isHome={activeTab === 'beranda'}
+            onBack={activeTab !== 'beranda' ? () => setActiveTab('beranda') : undefined}
+            onOpenNotifications={() => setShowNotifications(true)}
+            onOpenProfile={() => setActiveTab('profile')}
+            unreadNotifsCount={unreadNotifs}
           />
-        )}
 
-        {activeTab === 'pantry' && (
-          <PantryView
-            items={pantryItems}
-            onAddItem={() => setShowAddPantryModal(true)}
-            onOpenBarcodeScan={() => setShowBarcodeScanner(true)}
-            onUpdateItemStatus={handleUpdateItemStatus}
-            onDeleteItem={handleDeleteItem}
-            onNavigateToRecipe={(ingredientName) => {
-              const matched = recipes.find((r) =>
-                r.title.toLowerCase().includes(ingredientName.toLowerCase()) ||
-                r.ingredients.some((i) =>
-                  i.name.toLowerCase().includes(ingredientName.toLowerCase())
-                )
-              );
-              if (matched) {
-                setSelectedRecipeDetail(matched);
-              }
-              setActiveTab('menu');
-            }}
-            onOpenDonateModal={(item) => {
-              setActiveTab('rescue');
-            }}
-          />
-        )}
-
-        {activeTab === 'menu' && (
-          <MealPredictorView
-            recipes={recipes}
-            pantryItems={pantryItems}
-            selectedRecipe={selectedRecipeDetail}
-            onSelectRecipe={(recipe) => setSelectedRecipeDetail(recipe)}
-            onCloseRecipeModal={() => setSelectedRecipeDetail(null)}
-            onCookRecipe={handleCookRecipe}
-            onAddToMealPlan={handleAddToMealPlan}
-            onNavigateToMealPlanner={() => setActiveTab('planner')}
-          />
-        )}
-
-        {activeTab === 'planner' && (
-          <MealPlannerView
-            mealPlan={mealPlan}
-            recipes={recipes}
-            onRemoveItem={handleRemoveMealPlanItem}
-            onBack={() => setActiveTab('menu')}
-          />
-        )}
-
-        {activeTab === 'rescue' && (
-          <FoodRescueView
-            listings={rescueListings}
-            partners={initialPartners}
-            onAddListing={handleAddRescueListing}
-            onClaimListing={handleClaimListing}
-          />
-        )}
-
-        {activeTab === 'organik' && (
-          <OrganicCycleView
-            logs={organicLogs}
-            onAddLog={handleAddOrganicLog}
-          />
-        )}
-
-        {activeTab === 'dampak' && (
-          <WasteTrackerView
-            totalSavings={85000}
-            totalFoodWasteAvoidedKg={1.8}
-            totalOrganicCompostedKg={organicLogs.reduce(
-              (acc, curr) => acc + curr.weightKg,
-              0
+          {/* 2. Main Tab View Router */}
+          <main className="flex-1 flex flex-col">
+            {activeTab === 'beranda' && (
+              <BerandaView
+                pantryItems={pantryItems}
+                recipes={recipes}
+                onNavigate={(tab) => setActiveTab(tab)}
+                onSelectRecipe={(recipe) => {
+                  setSelectedRecipeDetail(recipe);
+                  setActiveTab('menu');
+                }}
+              />
             )}
+
+            {activeTab === 'pantry' && (
+              <PantryView
+                items={pantryItems}
+                onAddItem={() => setShowAddPantryModal(true)}
+                onOpenBarcodeScan={() => setShowBarcodeScanner(true)}
+                onUpdateItemStatus={handleUpdateItemStatus}
+                onDeleteItem={handleDeleteItem}
+                onNavigateToRecipe={(ingredientName) => {
+                  const matched = recipes.find((r) =>
+                    r.title.toLowerCase().includes(ingredientName.toLowerCase()) ||
+                    r.ingredients.some((i) =>
+                      i.name.toLowerCase().includes(ingredientName.toLowerCase())
+                    )
+                  );
+                  if (matched) {
+                    setSelectedRecipeDetail(matched);
+                  }
+                  setActiveTab('menu');
+                }}
+                onOpenDonateModal={(item) => {
+                  setActiveTab('rescue');
+                }}
+              />
+            )}
+
+            {activeTab === 'menu' && (
+              <MealPredictorView
+                recipes={recipes}
+                pantryItems={pantryItems}
+                selectedRecipe={selectedRecipeDetail}
+                onSelectRecipe={(recipe) => setSelectedRecipeDetail(recipe)}
+                onCloseRecipeModal={() => setSelectedRecipeDetail(null)}
+                onCookRecipe={handleCookRecipe}
+                onAddToMealPlan={handleAddToMealPlan}
+                onNavigateToMealPlanner={() => setActiveTab('planner')}
+              />
+            )}
+
+            {activeTab === 'planner' && (
+              <MealPlannerView
+                mealPlan={mealPlan}
+                recipes={recipes}
+                onRemoveItem={handleRemoveMealPlanItem}
+                onBack={() => setActiveTab('menu')}
+              />
+            )}
+
+            {activeTab === 'rescue' && (
+              <FoodRescueView
+                listings={rescueListings}
+                partners={initialPartners}
+                onAddListing={handleAddRescueListing}
+                onClaimListing={handleClaimListing}
+              />
+            )}
+
+            {activeTab === 'organik' && (
+              <OrganicCycleView
+                logs={organicLogs}
+                onAddLog={handleAddOrganicLog}
+              />
+            )}
+
+            {activeTab === 'dampak' && (
+              <WasteTrackerView
+                totalSavings={85000}
+                totalFoodWasteAvoidedKg={1.8}
+                totalOrganicCompostedKg={organicLogs.reduce(
+                  (acc, curr) => acc + curr.weightKg,
+                  0
+                )}
+              />
+            )}
+
+            {activeTab === 'profile' && (
+              <ProfileView
+                profile={profile}
+                onUpdateProfile={(updated) => setProfile({ ...profile, ...updated })}
+                onOpenOnboarding={() => setShowOnboarding(true)}
+                onResetData={handleResetDemoData}
+              />
+            )}
+          </main>
+
+          {/* 3. Bottom Navigation Bar */}
+          <BottomNav
+            activeTab={activeTab}
+            onChangeTab={(tab) => {
+              setSelectedRecipeDetail(null);
+              setActiveTab(tab);
+            }}
+            pantryAlertCount={urgentCount}
           />
-        )}
 
-        {activeTab === 'profile' && (
-          <ProfileView
-            profile={profile}
-            onUpdateProfile={(updated) => setProfile({ ...profile, ...updated })}
-            onOpenOnboarding={() => setShowOnboarding(true)}
-            onResetData={handleResetDemoData}
+          {/* Modals & Overlays */}
+          <AddPantryModal
+            isOpen={showAddPantryModal}
+            onClose={() => setShowAddPantryModal(false)}
+            onSave={handleAddPantryItem}
           />
-        )}
-      </main>
 
-      {/* 3. Bottom Navigation Bar */}
-      <BottomNav
-        activeTab={activeTab}
-        onChangeTab={(tab) => {
-          setSelectedRecipeDetail(null);
-          setActiveTab(tab);
-        }}
-        pantryAlertCount={urgentCount}
-      />
+          <BarcodeScannerModal
+            isOpen={showBarcodeScanner}
+            onClose={() => setShowBarcodeScanner(false)}
+            onDetected={handleAddPantryItem}
+          />
 
-      {/* Modals & Overlays */}
-      <AddPantryModal
-        isOpen={showAddPantryModal}
-        onClose={() => setShowAddPantryModal(false)}
-        onSave={handleAddPantryItem}
-      />
+          <OnboardingModal
+            isOpen={showOnboarding}
+            onClose={() => setShowOnboarding(false)}
+            onFinish={(updated) => {
+              setProfile({ ...profile, ...updated });
+              setShowOnboarding(false);
+            }}
+          />
 
-      <BarcodeScannerModal
-        isOpen={showBarcodeScanner}
-        onClose={() => setShowBarcodeScanner(false)}
-        onDetected={handleAddPantryItem}
-      />
-
-      <OnboardingModal
-        isOpen={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
-        onFinish={(updated) => {
-          setProfile({ ...profile, ...updated });
-          setShowOnboarding(false);
-        }}
-      />
-
-      <NotificationsModal
-        isOpen={showNotifications}
-        notifications={notifications}
-        onClose={() => setShowNotifications(false)}
-        onNavigate={(tab) => {
-          setActiveTab(tab);
-          setShowNotifications(false);
-        }}
-        onMarkAllAsRead={() => {
-          setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-        }}
-      />
-    </MobileFrame>
+          <NotificationsModal
+            isOpen={showNotifications}
+            notifications={notifications}
+            onClose={() => setShowNotifications(false)}
+            onNavigate={(tab) => {
+              setActiveTab(tab);
+              setShowNotifications(false);
+            }}
+            onMarkAllAsRead={() => {
+              setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+            }}
+          />
+        </MobileFrame>
+      )}
+    </div>
   );
 }
