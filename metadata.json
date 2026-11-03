@@ -1,0 +1,6 @@
+{
+  "name": "PANGANOVA - Smart Food Management",
+  "description": "Ekosistem pengelolaan pangan cerdas rumah tangga untuk mencegah food waste, memantau stok pantry, rekomendasi resep AI, food rescue, dan daur organik.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
