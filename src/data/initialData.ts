@@ -10,7 +10,7 @@ import {
 } from '../types';
 
 export const initialProfile: UserProfile = {
-  name: 'Kaylilla',
+  name: 'Kafa',
   familyMembers: 3,
   shoppingFrequency: '1x seminggu (Weekend)',
   weeklyBudget: 450000,

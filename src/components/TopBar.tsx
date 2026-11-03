@@ -15,7 +15,7 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({
   title,
-  userName = 'Kaylilla',
+  userName = 'Kafa',
   isHome = false,
   onBack,
   onOpenNotifications,

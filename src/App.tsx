@@ -50,7 +50,18 @@ export default function App() {
   // Core App Data States (with LocalStorage persistence)
   const [profile, setProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('panganova_profile');
-    return saved ? JSON.parse(saved) : initialProfile;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.name === 'Kaylilla') {
+          parsed.name = 'Kafa';
+        }
+        return parsed;
+      } catch {
+        return initialProfile;
+      }
+    }
+    return initialProfile;
   });
 
   const [pantryItems, setPantryItems] = useState<PantryItem[]>(() => {
